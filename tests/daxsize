@@ -1,0 +1,14 @@
+#!/usr/bin/perl -w
+
+$#ARGV and die "Usage: $0 /dev/dax3.14\n";
+my $dax = $ARGV[0];
+-e $dax or die "File doesn't exist: $dax\n";
+-c $dax or die "Not a char device (thus not devdax): $dax\n";
+my $rdev = (stat $dax)[6];
+defined $rdev or die "Can't stat: $dax\n";
+my ($major, $minor) = ($rdev>>8, $rdev&0xff);
+my $sizepath = "/sys/dev/char/$major:$minor/size";
+open SIZE, '<', $sizepath or die "Can't read $sizepath (is $dax a devdax?)\n";
+$_ = <SIZE>;
+defined $_ && /^(\d+)$/ or die "Didn't get valid device size from $sizepath\n";
+print "$1\n";
