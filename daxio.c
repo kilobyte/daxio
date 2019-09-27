@@ -516,7 +516,7 @@ cleanup_devices(struct daxio_context *ctx)
  * do_io -- (internal) write data to device/file
  */
 static int
-do_io(struct ndctl_ctx *ndctl_ctx, struct daxio_context *ctx)
+do_io(struct daxio_context *ctx)
 {
 	ssize_t cnt = 0;
 
@@ -626,7 +626,7 @@ main(int argc, char **argv)
 
 	adjust_io_len(&Ctx);
 
-	if (do_io(ndctl_ctx, &Ctx))
+	if (do_io(&Ctx))
 		ret = EXIT_FAILURE;
 
 err:
