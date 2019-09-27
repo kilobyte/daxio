@@ -53,7 +53,6 @@
 //#include "out.h"
 //#include "os.h"
 #include "dimm.h"
-#include "os_badblock.h"
 //#include "badblock.h"
 
 #define FOREACH_BUS_REGION_NAMESPACE(ctx, bus, region, ndns)	\
@@ -71,6 +70,48 @@
 #define Free free
 #define Zalloc(x) calloc(1, (x))
 #include "vec.h"
+
+#define B2SEC(n) ((n) >> 9)     /* convert bytes to sectors */
+#define SEC2B(n) ((n) << 9)     /* convert sectors to bytes */
+
+#define NO_HEALTHY_REPLICA ((int)(-1))
+
+/*
+ * 'struct badblock' is already defined in ndctl/libndctl.h,
+ * so we cannot use this name.
+ *
+ * libndctl returns offset relative to the beginning of the region,
+ * but in this structure we save offset relative to the beginning of:
+ * - namespace (before os_badblocks_get())
+ * and
+ * - file (before sync_recalc_badblocks())
+ * and
+ * - pool (after sync_recalc_badblocks())
+ */
+struct bad_block {
+	/*
+	 * offset in bytes relative to the beginning of
+	 *  - namespace (before os_badblocks_get())
+	 * and
+	 *  - file (before sync_recalc_badblocks())
+	 * and
+	 *  - pool (after sync_recalc_badblocks())
+	 */
+	unsigned long long offset;
+
+	/* length in bytes */
+	unsigned length;
+
+	/* number of healthy replica to fix this bad block */
+	int nhealthy;
+};
+
+struct badblocks {
+	unsigned long long ns_resource; /* address of the namespace */
+	unsigned bb_cnt;                /* number of bad blocks */
+	struct bad_block *bbv;          /* array of bad blocks */
+};
+
 
 /*
  * os_dimm_match_devdax -- (internal) returns 1 if the devdax matches
