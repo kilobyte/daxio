@@ -487,37 +487,6 @@ out_ars_cap:
 }
 
 /*
- * badblocks_new -- zalloc bad blocks structure
- */
-static struct badblocks *
-badblocks_new(void)
-{
-	LOG(3, " ");
-
-	struct badblocks *bbs = Zalloc(sizeof(struct badblocks));
-	if (bbs == NULL) {
-		ERR("!Zalloc");
-	}
-
-	return bbs;
-}
-
-/*
- * badblocks_delete -- free bad blocks structure
- */
-static void
-badblocks_delete(struct badblocks *bbs)
-{
-	LOG(3, "badblocks %p", bbs);
-
-	if (bbs == NULL)
-		return;
-
-	Free(bbs->bbv);
-	Free(bbs);
-}
-
-/*
  * dimm_devdax_clear_badblocks -- clear the given bad blocks in the dax device
  */
 int
@@ -534,44 +503,40 @@ dimm_devdax_clear_badblocks(const char *path)
 		return -1;
 	}
 
-	struct badblocks *bbs = badblocks_new();
-	if (bbs == NULL)
-		goto exit_free_all;
+	struct badblocks bbs;
+	memset(&bbs, 0, sizeof(struct badblocks));
 
-	ret = os_dimm_files_namespace_badblocks_bus(ctx, path, &bus,
-								bbs);
+	ret = os_dimm_files_namespace_badblocks_bus(ctx, path, &bus, &bbs);
 	if (ret) {
 		LOG(1, "getting bad blocks for the file failed -- %s",
 			path);
 		goto exit_free_all;
 	}
 
-	if (bbs->bb_cnt == 0 || bbs->bbv == NULL) /* OK - no bad blocks found */
+	if (bbs.bb_cnt == 0 || bbs.bbv == NULL) /* OK - no bad blocks found */
 		goto exit_free_all;
 
-	LOG(4, "clearing %u bad block(s)...", bbs->bb_cnt);
+	LOG(4, "clearing %u bad block(s)...", bbs.bb_cnt);
 
 	unsigned b;
-	for (b = 0; b < bbs->bb_cnt; b++) {
+	for (b = 0; b < bbs.bb_cnt; b++) {
 		LOG(4,
 			"clearing bad block: offset %llu length %u (in 512B sectors)",
-			B2SEC(bbs->bbv[b].offset), B2SEC(bbs->bbv[b].length));
+			B2SEC(bbs.bbv[b].offset), B2SEC(bbs.bbv[b].length));
 
 		ret = os_dimm_devdax_clear_one_badblock(bus,
-					bbs->bbv[b].offset + bbs->ns_resource,
-					bbs->bbv[b].length);
+					bbs.bbv[b].offset + bbs.ns_resource,
+					bbs.bbv[b].length);
 		if (ret) {
 			LOG(1,
 				"failed to clear bad block: offset %llu length %u (in 512B sectors)",
-				B2SEC(bbs->bbv[b].offset),
-				B2SEC(bbs->bbv[b].length));
+				B2SEC(bbs.bbv[b].offset),
+				B2SEC(bbs.bbv[b].length));
 			goto exit_free_all;
 		}
 	}
 
 exit_free_all:
-	badblocks_delete(bbs);
-
 	ndctl_unref(ctx);
 
 	return ret;
