@@ -1,0 +1,8 @@
+add_custom_target(doc ALL
+	BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/daxio.1
+	COMMENT "Building daxio.1"
+	COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/md2man.sh
+		${CMAKE_CURRENT_SOURCE_DIR}/daxio.1.md
+		${CMAKE_CURRENT_SOURCE_DIR}/default.man
+		${CMAKE_CURRENT_BINARY_DIR}/daxio.1
+	)

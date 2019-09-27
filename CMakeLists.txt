@@ -16,3 +16,14 @@ target_link_libraries(daxio ${LIBS})
 
 install(TARGETS daxio
 	RUNTIME DESTINATION bin)
+
+find_program(PANDOC NAMES pandoc)
+if(NOT PANDOC)
+        message(WARNING "pandoc not found - documentation will not be generated")
+endif()
+
+if (PANDOC)
+	add_subdirectory(doc)
+	install(FILES ${CMAKE_CURRENT_BINARY_DIR}/doc/daxio.1
+		DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+endif()
