@@ -16,3 +16,13 @@ output file/device length, if input is a special char file or stdin.
 
 For a Device DAX device, daxio will attempt to clear badblocks within range
 of writes before performing the I/O.
+
+
+Build dependencies
+==================
+
+ * cmake
+ * libndctl-dev
+ * libdaxctl-dev
+ * libpmem-dev
+ * pandoc [optional]
