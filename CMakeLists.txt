@@ -11,8 +11,11 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra")
 add_executable(daxio daxio.c dimm_ndctl.c util.c)
 target_link_libraries(daxio ${LIBS})
 
-#enable_testing()
-#add_subdirectory(tests)
+set(DAX1 "" CACHE STRING "test dax device 1")
+set(DAX2 "" CACHE STRING "test dax device 2")
+
+enable_testing()
+add_subdirectory(tests)
 
 install(TARGETS daxio
 	RUNTIME DESTINATION bin)
