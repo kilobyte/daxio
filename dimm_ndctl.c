@@ -74,8 +74,6 @@
 #define B2SEC(n) ((n) >> 9)     /* convert bytes to sectors */
 #define SEC2B(n) ((n) << 9)     /* convert sectors to bytes */
 
-#define NO_HEALTHY_REPLICA ((int)(-1))
-
 /*
  * 'struct badblock' is already defined in ndctl/libndctl.h,
  * so we cannot use this name.
@@ -101,9 +99,6 @@ struct bad_block {
 
 	/* length in bytes */
 	unsigned length;
-
-	/* number of healthy replica to fix this bad block */
-	int nhealthy;
 };
 
 struct badblocks {
@@ -352,7 +347,6 @@ os_dimm_namespace_get_badblocks_by_region(struct ndctl_region *region,
 		struct bad_block bbn;
 		bbn.offset = beg - ns_beg;
 		bbn.length = (unsigned)(end - beg + 1);
-		bbn.nhealthy = NO_HEALTHY_REPLICA; /* unknown healthy replica */
 
 		/* add the new bad block to the vector */
 		if (VEC_PUSH_BACK(&bbv, bbn)) {

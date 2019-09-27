@@ -58,30 +58,6 @@ struct name {\
 
 #define VEC_INITIALIZER {NULL, 0, 0}
 
-#define VEC_INIT(vec) do {\
-	(vec)->buffer = NULL;\
-	(vec)->size = 0;\
-	(vec)->capacity = 0;\
-} while (0)
-
-#define VEC_MOVE(vecl, vecr) do {\
-	Free((vecl)->buffer);\
-	(vecl)->buffer = (vecr)->buffer;\
-	(vecl)->size = (vecr)->size;\
-	(vecl)->capacity = (vecr)->capacity;\
-	(vecr)->buffer = NULL;\
-	(vecr)->size = 0;\
-	(vecr)->capacity = 0;\
-} while (0)
-
-
-#define VEC_REINIT(vec) do {\
-	VALGRIND_ANNOTATE_NEW_MEMORY((vec), sizeof(*vec));\
-	VALGRIND_ANNOTATE_NEW_MEMORY((vec)->buffer,\
-		(sizeof(*(vec)->buffer) * ((vec)->capacity)));\
-	(vec)->size = 0;\
-} while (0)
-
 static inline int
 vec_reserve(void *vec, size_t ncapacity, size_t s)
 {
@@ -102,28 +78,6 @@ vec_reserve(void *vec, size_t ncapacity, size_t s)
 	vec_reserve((void *)vec, ncapacity, sizeof(*(vec)->buffer)) :\
 	0)
 
-#define VEC_POP_BACK(vec) do {\
-	(vec)->size -= 1;\
-} while (0)
-
-#define VEC_FRONT(vec)\
-(vec)->buffer[0]
-
-#define VEC_BACK(vec)\
-(vec)->buffer[(vec)->size - 1]
-
-#define VEC_ERASE_BY_POS(vec, pos) do {\
-	if ((pos) != ((vec)->size - 1))\
-		(vec)->buffer[(pos)] = VEC_BACK(vec);\
-	VEC_POP_BACK(vec);\
-} while (0)
-
-#define VEC_ERASE_BY_PTR(vec, element) do {\
-	if ((element) != &VEC_BACK(vec))\
-		*(element) = VEC_BACK(vec);\
-	VEC_POP_BACK(vec);\
-} while (0)
-
 #define VEC_INSERT(vec, element)\
 ((vec)->buffer[(vec)->size - 1] = (element), 0)
 
@@ -139,24 +93,6 @@ vec_reserve(void *vec, size_t ncapacity, size_t s)
 #define VEC_PUSH_BACK(vec, element)\
 (VEC_INC_BACK(vec) == 0? VEC_INSERT(vec, element) : -1)
 
-#define VEC_FOREACH(el, vec)\
-for (size_t _vec_i = 0;\
-	_vec_i < (vec)->size && (((el) = (vec)->buffer[_vec_i]), 1);\
-	++_vec_i)
-
-#define VEC_FOREACH_REVERSE(el, vec)\
-for (size_t _vec_i = ((vec)->size);\
-	_vec_i != 0 && (((el) = (vec)->buffer[_vec_i - 1]), 1);\
-	--_vec_i)
-
-#define VEC_FOREACH_BY_POS(elpos, vec)\
-for ((elpos) = 0; (elpos) < (vec)->size; ++(elpos))
-
-#define VEC_FOREACH_BY_PTR(el, vec)\
-for (size_t _vec_i = 0;\
-	_vec_i < (vec)->size && (((el) = &(vec)->buffer[_vec_i]), 1);\
-	++_vec_i)
-
 #define VEC_SIZE(vec)\
 ((vec)->size)
 
@@ -165,13 +101,6 @@ for (size_t _vec_i = 0;\
 
 #define VEC_ARR(vec)\
 ((vec)->buffer)
-
-#define VEC_GET(vec, id)\
-(&(vec)->buffer[id])
-
-#define VEC_CLEAR(vec) do {\
-	(vec)->size = 0;\
-} while (0)
 
 #define VEC_DELETE(vec) do {\
 	Free((vec)->buffer);\
