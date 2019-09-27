@@ -335,40 +335,6 @@ os_dimm_namespace_get_badblocks_by_region(struct ndctl_region *region,
 }
 
 /*
- * os_dimm_namespace_get_badblocks_by_namespace -- (internal) returns bad blocks
- *                                    in the given namespace using the
- *                                    block device badblocks interface.
- *
- * This function works only for fsdax, but does not require any special
- * permissions.
- */
-static int
-os_dimm_namespace_get_badblocks_by_namespace(struct ndctl_namespace *ndns,
-					struct badblocks *bbs)
-{
-	ASSERTeq(ndctl_namespace_get_mode(ndns), NDCTL_NS_MODE_FSDAX);
-
-	VEC(bbsvec, struct bad_block) bbv = VEC_INITIALIZER;
-	struct badblock *bb;
-	ndctl_namespace_badblock_foreach(ndns, bb) {
-		struct bad_block bbn;
-		bbn.offset = SEC2B(bb->offset);
-		bbn.length = (unsigned)SEC2B(bb->len);
-		bbn.nhealthy = NO_HEALTHY_REPLICA; /* unknown healthy replica */
-		if (VEC_PUSH_BACK(&bbv, bbn)) {
-			VEC_DELETE(&bbv);
-			return -1;
-		}
-	}
-
-	bbs->bb_cnt = (unsigned)VEC_SIZE(&bbv);
-	bbs->bbv = VEC_ARR(&bbv);
-	bbs->ns_resource = 0;
-
-	return 0;
-}
-
-/*
  * os_dimm_namespace_get_badblocks -- (internal) returns bad blocks in the given
  *                                    namespace, using the least privileged
  *                                    path.
@@ -378,13 +344,6 @@ os_dimm_namespace_get_badblocks(struct ndctl_region *region,
 				struct ndctl_namespace *ndns,
 				struct badblocks *bbs)
 {
-	/*
-	 * Only the new NDCTL versions have the namespace badblock iterator,
-	 * when compiled with older versions, the library needs to rely on the
-	 * old region interface.
-	 */
-	if (ndctl_namespace_get_mode(ndns) == NDCTL_NS_MODE_FSDAX)
-		return os_dimm_namespace_get_badblocks_by_namespace(ndns, bbs);
 	return os_dimm_namespace_get_badblocks_by_region(region, ndns, bbs);
 }
 
